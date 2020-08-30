@@ -1,5 +1,6 @@
 # System libs
 import os
+from pathlib import Path
 import argparse
 from distutils.version import LooseVersion
 from multiprocessing import Queue, Process
@@ -10,7 +11,7 @@ import torch
 import torch.nn as nn
 from scipy.io import loadmat
 # Our libs
-from mit_semseg.config import cfg
+from mit_semseg.config import upernet as cfg
 from mit_semseg.dataset import ValDataset
 from mit_semseg.models import ModelBuilder, SegmentationModule
 from mit_semseg.utils import AverageMeter, colorEncode, accuracy, intersectionAndUnion, parse_devices, setup_logger
@@ -19,7 +20,7 @@ from mit_semseg.lib.utils import as_numpy
 from PIL import Image
 from tqdm import tqdm
 
-colors = loadmat('data/color150.mat')['colors']
+# colors = loadmat('../data/color150.mat')['colors']
 
 
 def visualize_result(data, pred, dir_result):
@@ -128,7 +129,7 @@ def main():
     )
     parser.add_argument(
         "--cfg",
-        default="config/ade20k-resnet50dilated-ppm_deepsup.yaml",
+        default=None,
         metavar="FILE",
         help="path to config file",
         type=str,
@@ -146,7 +147,8 @@ def main():
     )
     args = parser.parse_args()
 
-    cfg.merge_from_file(args.cfg)
+    if args.cfg is not None:
+        cfg.merge_from_file(args.cfg)
     cfg.merge_from_list(args.opts)
     # cfg.freeze()
 
@@ -170,9 +172,18 @@ def main():
     gpus = [x.replace('gpu', '') for x in gpus]
     gpus = [int(x) for x in gpus]
 
-    with open(cfg.DATASET.list_val, 'r') as f:
-        lines = f.readlines()
-        num_files = len(lines)
+    if len(cfg.DATASET.img_dir) + len(cfg.DATASET.seg_dir) > 0:
+        img_fpaths = list(sorted(Path(cfg.DATASET.img_dir).glob("**/*.jpg"))) + \
+            list(sorted(Path(cfg.DATASET.img_dir).glob("**/*.png")))
+        seg_fpaths = list(sorted(Path(cfg.DATASET.seg_dir).glob("**/*.jpg"))) + \
+            list(sorted(Path(cfg.DATASET.seg_dir).glob("**/*.png")))
+        assert len(img_fpaths) == len(seg_fpaths)
+        num_files = len(img_fpaths)
+        cfg.DATASET.list_val = [{'fpath_img': i, 'fpath_segm': s} for i, s in zip(img_fpaths, seg_fpaths)]
+    else:
+        with open(cfg.DATASET.list_val, 'r') as f:
+            lines = f.readlines()
+            num_files = len(lines)
 
     num_files_per_gpu = math.ceil(num_files / len(gpus))
 
