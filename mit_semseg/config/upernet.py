@@ -18,7 +18,8 @@ _C.DATASET.img_dir = "./data/ADEChallengeData2016/images/validation"
 _C.DATASET.seg_dir = "./data/ADEChallengeData2016/annotations/validation"
 _C.DATASET.num_class = 150
 # multiscale train/test, size of short edge (int or tuple)
-_C.DATASET.imgSizes = (300, 375, 450, 525, 600)
+# _C.DATASET.imgSizes = (300, 375, 450, 525, 600)
+_C.DATASET.imgSizes = 256,
 # maximum input image size of long edge
 _C.DATASET.imgMaxSize = 1000
 # maxmimum downsampling rate of the network
