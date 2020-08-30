@@ -11,7 +11,7 @@ _C.DIR = "ckpt/ade20k-resnet1010-upernet"
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
-_C.DATASET.root_dataset = "./data/"
+_C.DATASET.root_dataset = ""
 _C.DATASET.list_train = "./data/training.odgt"
 _C.DATASET.list_val = "./data/validation.odgt"
 _C.DATASET.img_dir = "./data/ADEChallengeData2016/images/validation"
